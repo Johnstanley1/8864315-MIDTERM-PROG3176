@@ -8,7 +8,29 @@ namespace MidtermAPI_JohnstanleyAjagu.Controllers
     [ApiController]
     public class JAProductController : ControllerBase
     {
-        public JAProductController() { }
+        private readonly Dictionary<string, int> _usageCounts;
+        public JAProductController(Dictionary<string, int> usageCounts) 
+        {
+            _usageCounts = usageCounts;
+        }
+
+
+        [HttpGet]
+        public IActionResult Usage()
+        {
+            var key = Request.Headers["X-Api-Key"].ToString();
+
+            if (!_usageCounts.ContainsKey(key))
+                _usageCounts[key] = 0;
+
+            _usageCounts[key]++;
+
+            return Ok(new
+            {
+                clientId = key,
+                usageCount = _usageCounts[key]
+            });
+        }
 
 
         [HttpGet]
