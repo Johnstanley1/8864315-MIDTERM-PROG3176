@@ -1,3 +1,5 @@
+using MidtermAPI_JohnstanleyAjagu.Middlewares;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -17,6 +19,11 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+if (app.Environment.IsDevelopment())
+    app.UseMiddleware<JAApiKeyMiddleware>();
+
+app.UseMiddleware<JAGlobalExceptionMiddleware>();
 
 app.UseAuthorization();
 
