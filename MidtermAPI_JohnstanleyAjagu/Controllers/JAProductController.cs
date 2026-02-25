@@ -24,5 +24,23 @@ namespace MidtermAPI_JohnstanleyAjagu.Controllers
         }
 
 
+        [HttpPost]
+        public ActionResult<JAProduct> Post([FromBody] JAProduct product)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(new
+                {
+                    error = "InvalidProduct",
+                    message = "Name cannot be empty"
+                });
+            }
+
+            return CreatedAtAction(nameof(Get), new { id = product.Id }, new
+            {
+                message = "Product created",
+                product = product
+            });
+        }
     }
 }
