@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using MidtermAPI_JohnstanleyAjagu.Models;
+using MidtermAPI_JohnstanleyAjagu.Services;
 
 namespace MidtermAPI_JohnstanleyAjagu.Controllers
 {
@@ -9,13 +10,15 @@ namespace MidtermAPI_JohnstanleyAjagu.Controllers
     public class JAProductController : ControllerBase
     {
         private readonly Dictionary<string, int> _usageCounts;
-        public JAProductController(Dictionary<string, int> usageCounts) 
+        private readonly JAProductService _jAProductService;
+        public JAProductController(JAProductService jAProductService, Dictionary<string, int> usageCounts)
         {
+            _jAProductService = jAProductService;
             _usageCounts = usageCounts;
         }
 
 
-        [HttpGet]
+        [HttpGet("usage")]
         public IActionResult Usage()
         {
             var key = Request.Headers["X-Api-Key"].ToString();
@@ -36,32 +39,42 @@ namespace MidtermAPI_JohnstanleyAjagu.Controllers
         [HttpGet]
         public ActionResult<IEnumerable<JAProduct>> Get()
         {
-            var products = new List<JAProduct>
-            {
-                new JAProduct { Id = 1, Name = "Nissan Amada", Quantity = 10 },
-                new JAProduct { Id = 2, Name = "Toyota Corrolla", Quantity = 20 },
-                new JAProduct { Id = 3, Name = "Honda Civic", Quantity = 30 }
-            };
-            return Ok(products);
+            return _jAProductService.GetProducts();
+        }
+
+
+        [HttpGet("{id}")]
+        public ActionResult<JAProduct> GetById(int id)
+        {
+            var product = _jAProductService.GetProducts().FirstOrDefault(p => p.Id == id);
+            if (product == null) return NotFound();
+            return Ok(product);
         }
 
 
         [HttpPost]
-        public ActionResult<JAProduct> Post([FromBody] JAProduct product)
+        public ActionResult Post([FromBody] JAProduct product)
         {
             if (!ModelState.IsValid)
             {
+                var errors = ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage)
+                    .ToList();
+
                 return BadRequest(new
                 {
                     error = "InvalidProduct",
-                    message = "Name cannot be empty"
+                    message = string.Join("; ", errors)
                 });
             }
 
-            return CreatedAtAction(nameof(Get), new { id = product.Id }, new
+            var created = _jAProductService.PostProduct(product);
+
+            return CreatedAtAction(nameof(GetById), new { id = created.Id }, new
             {
                 message = "Product created",
-                product = product
+                Product = created
             });
         }
     }

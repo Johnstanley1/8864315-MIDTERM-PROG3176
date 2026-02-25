@@ -1,4 +1,5 @@
 using MidtermAPI_JohnstanleyAjagu.Middlewares;
+using MidtermAPI_JohnstanleyAjagu.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -6,6 +7,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+builder.Services.AddScoped<JAProductService, JAFakeProductService>();
+
 var usageCounts = new Dictionary<string, int>();
 builder.Services.AddSingleton(usageCounts);
 
@@ -23,7 +26,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-if (app.Environment.IsDevelopment())
+if (!app.Environment.IsDevelopment())
     app.UseMiddleware<JAApiKeyMiddleware>();
 
 app.UseMiddleware<JAGlobalExceptionMiddleware>();
